@@ -72,6 +72,7 @@ tire_radius = 0
 maxSpeeds = list()
 downShiftGear = 0
 last_aggr_downshift_time = 0
+current_gear_minus_downshift_gear = 0
 
 # shifting when in non-manual mode
 auto_shifted = False
@@ -264,6 +265,7 @@ def analyzeInput(deltaT):
     # debugText += formatDebugText("time in neutral", time_in_neutral)
     debugText += formatDebugText("gear", gear)
     debugText += formatDebugText("last gear shift time", last_gear_shift_time)
+    debugText += formatDebugText("current_gear_minus_downshift_gear", current_gear_minus_downshift_gear)
     ac.setText(aggr_lbl, debugText)
 
 def setRPMRangeSize():
@@ -272,7 +274,7 @@ def setRPMRangeSize():
     rpmRangeSize = (maxRPM - idleRPM)/divisor
 
 def makeDecision():
-    global last_aggr_downshift_time, downShiftGear
+    global last_aggr_downshift_time, downShiftGear, current_gear_minus_downshift_gear
     if time.time() < lastShiftTime + 0.1 or gear < 1 or time.time() < lastShiftUpTime + 1:
         return
         
@@ -285,6 +287,7 @@ def makeDecision():
         downShiftGear = max(1, downshiftGearPossible + 1) # add one because maxSpeeds array was 0-indexd
         if speed * 0.621 < 35:
             downShiftGear = max(downShiftGear, 2)
+        current_gear_minus_downshift_gear = gear - downShiftGear
         if downShiftGear < gear:
             for _ in range(gear - downShiftGear):
                 shiftDown()
