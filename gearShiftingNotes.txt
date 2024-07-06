@@ -1,0 +1,7 @@
+When gas pedal is fully floored gearbox should downshift to the lowest gear possible based on the current speed. 
+We have the calculations for the max speed of each gear already. 
+Ex: If car is driving at 55 mph, the current gear may be at 6th gear. Based on the max gear speed ratio calculations, max speed of 1st gear 
+may be 34 mph. Max speed of second gear could be, 63 mph. When gas pedal is floored, or aggressiveness is at 1, the gearbox should shift to 2nd gear based on the max speed calculations per gear.
+Car should not downshift too low if the car will upshift immediately. So we can have an offset for 1st gear and 2nd gear. Estimate of 15 mph off set for 1st and 7 mph for 2nd gear.
+So that means that if 1st gear has a max speed of 35 mph and we are at 30 mph the car will go to 2nd gear instead of 1st and will only go to 1st gear if the current speed is at 20 mph based on the 
+15 mph offset speed.
