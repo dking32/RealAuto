@@ -232,8 +232,8 @@ def analyzeInput(deltaT):
     aggressiveness = max(aggressiveness, gas_thresholds[drive_mode][3])
 
     rpmRangeTop = idleRPM + 1000 + ((maxShiftRPM - idleRPM - 700)*aggressiveness)
-    if rpmRangeTop > maxRPM:
-        rpmRangeTop=maxRPM
+    if rpmRangeTop > maxShiftRPM:
+        rpmRangeTop=maxShiftRPM
     # else: 
     #     rpmRangeTop = idleRPM + 1000 + ((maxShiftRPM - idleRPM - 700)*aggressiveness)
     # if time.time() < last_aggr_downshift_time + 1:
@@ -254,15 +254,16 @@ def analyzeInput(deltaT):
     # debugText += formatDebugText("script gear", script_gear)
     # debugText += formatDebugText("auto shifted", auto_shifted)
     # debugText += formatDebugText("maxShiftRPM", maxShiftRPM)
-    # debugText += formatDebugText("temp manual", is_temp_manual)
+    debugText += formatDebugText("temp manual", is_temp_manual)
+    debugText += formatDebugText("current rpm", str(round(rpm)))
     # debugText += formatDebugText("temp manual true count", tempManualTrue)
     # debugText += formatDebugText("temp manual false count", tempManualFalse)
     # debugText += formatDebugText("temp manual called count", tempManualCalled)
-    # debugText += formatDebugText("drive mode", drive_mode)
+    debugText += formatDebugText("drive mode", drive_mode)
     # debugText += formatDebugText("shifted from neutral", shifted_from_neutral)
     # debugText += formatDebugText("time in neutral", time_in_neutral)
     debugText += formatDebugText("gear", gear)
-    # debugText += formatDebugText("last gear shift time", last_gear_shift_time)
+    debugText += formatDebugText("last gear shift time", last_gear_shift_time)
     ac.setText(aggr_lbl, debugText)
 
 def setRPMRangeSize():
@@ -274,6 +275,7 @@ def makeDecision():
     global last_aggr_downshift_time, downShiftGear
     if time.time() < lastShiftTime + 0.1 or gear < 1 or time.time() < lastShiftUpTime + 1:
         return
+        
     if aggressiveness == 1:
         last_aggr_downshift_time = time.time()
         # figure out which gear to downshift to
@@ -316,7 +318,7 @@ def getInfo():
             auto_shifted = False
         elif time.time() - last_gear_shift_time > 0.45 and drive_mode != 0 and not shifted_from_neutral:
             tempManualTrue += 1
-            setToTempManual(True)
+            #setToTempManual(True)
         last_gear_shift_time = time.time()
     elif is_temp_manual:
         if time.time() - last_gear_shift_time > 7:
@@ -374,17 +376,27 @@ def initializeInfo():
         tire_radius = float(re.search(r'[\d\.]+', tire_radius).group())
 
 
+# fake pressing the P key, 
+# trigerring an upshifting if the key is properly mapped in AC
 def shiftUp():
     global lastShiftTime, lastShiftUpTime, auto_shifted
+    # actually press the key
     keyboard.press_and_release('p')
-    lastShiftTime = time.time()
-    lastShiftUpTime = time.time()
+    ac.setGear(ac.getCarState(0, acsys.CS.Gear) + 1)
+    # update the last shifting times
+    lastShiftTime       = time.time()
+    lastShiftUpTime     = time.time()
     auto_shifted = True
 
 
+# fake pressing the O key, 
+# trigerring a downshift if the key is properly mapped in AC
 def shiftDown():
     global lastShiftTime, lastShiftDownTime, auto_shifted
+    # actually press the key
     keyboard.press_and_release('o')
-    lastShiftTime = time.time()
-    lastShiftDownTime = time.time()
+    ac.setGear(ac.getCarState(0, acsys.CS.Gear) - 1)
+    # update the last shifting times
+    lastShiftTime       = time.time()
+    lastShiftDownTime   = time.time()
     auto_shifted = True
